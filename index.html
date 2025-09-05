@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrafficScript - Live Interpreter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .playground {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: 70vh;
+        }
+        
+        .editor-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .panel-title {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+        
+        #code-editor {
+            width: 100%;
+            height: 80%;
+            background: rgba(0, 0, 0, 0.3);
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #00ff00;
+            resize: none;
+            outline: none;
+        }
+        
+        #output {
+            width: 100%;
+            height: 80%;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #00ccff;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        .examples {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .example-btn {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            font-size: 12px;
+            padding: 8px 15px;
+        }
+        
+        .traffic-visual {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+        
+        .status-bar {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        @media (max-width: 768px) {
+            .playground {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            #code-editor, #output {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 TrafficScript 🛺</h1>
+            <p>Programming Language for Indian Traffic Chaos</p>
+            <div class="traffic-visual">🚦 🚙 🛺 🏍️ 🚌</div>
+        </div>
+        
+        <div class="playground">
+            <div class="editor-panel">
+                <h3 class="panel-title">📝 Code Editor</h3>
+                <textarea id="code-editor" placeholder="// Welcome to TrafficScript!
+// Try the examples below or write your own chaos...
+
+scenario 'Mumbai_Rush_Hour' {
+    duration: 2.hours
+    chaos_level: MAXIMUM
+    
+    spawn(Autos: 50, Cars: 30, Buses: 10)
+    create_pothole(random_lane)
+    
+    timeline {
+        at 15.minutes: sudden_rain()
+        at 30.minutes: vip_convoy_detected()
+    }
+    
+    output('Traffic successfully chaotic! 🎉')
+}"></textarea>
+                
+                <div class="controls">
+                    <button onclick="runCode()">🚀 Run Simulation</button>
+                    <button onclick="clearCode()">🗑️ Clear</button>
+                    <button onclick="shareCode()">📤 Share</button>
+                </div>
+                
+                <div class="examples">
+                    <button class="example-btn" onclick="loadExample('basic')">Basic Junction</button>
+                    <button class="example-btn" onclick="loadExample('chaos')">Chaos Mode</button>
+                    <button class="example-btn" onclick="loadExample('monsoon')">Monsoon Traffic</button>
+                    <button class="example-btn" onclick="loadExample('festival')">Festival Rush</button>
+                </div>
+            </div>
+            
+            <div class="editor-panel">
+                <h3 class="panel-title">📊 Simulation Output</h3>
+                <div id="output">Welcome to TrafficScript Interpreter v1.0!
+
+🔥 Features:
+- Realistic Indian traffic simulation
+- Chaos-driven programming model  
+- Built-in honking operators
+- Monsoon & festival support
+
+Click 'Run Simulation' to see your traffic chaos come alive!
+
+Recent deployments:
+✅ Bangalore Traffic Authority (Testing)
+✅ Delhi Metro Planning (Pilot)
+✅ Mumbai Police (Training Simulator)
+</div>
+                
+                <div class="status-bar">
+                    <span id="status">Ready to simulate traffic chaos 🚦</span>
+                    <span id="vehicle-count">Vehicles: 0</span>
+                    <span id="chaos-level">Chaos: 📊 Normal</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const examples = {
+            basic: `junction ChennaiSignal {
+    lanes: 4
+    condition: NORMAL
+    signals: [RED, YELLOW, GREEN]
+}
+
+vehicle AutoRickshaw {
+    max_speed: 45.kmph
+    aggressiveness: 0.8
+    
+    behavior sudden_lane_change() {
+        if (gap > 1.meter) {
+            switch_lane(random_direction)
+            honk(LOUD)
+        }
+    }
+}
+
+scenario 'Basic_Junction_Test' {
+    spawn(Autos: 10, Cars: 15)
+    simulate(duration: 30.minutes)
+    
+    output('Basic junction simulation complete!')
+}`,
+            
+            chaos: `scenario 'Delhi_Maximum_Chaos' {
+    duration: 1.hour
+    chaos_level: INSANE
+    
+    // Spawn the army
+    spawn(Autos: 100, Cars: 80, Buses: 20, Bikes: 200)
+    
+    // Create obstacles
+    create_pothole(everywhere)
+    street_vendor.setup_stall(random_locations: 15)
+    
+    // Events timeline
+    timeline {
+        at 0.minutes: traffic_cop.take_lunch_break()
+        at 10.minutes: power_cut(all_signals)
+        at 20.minutes: cricket_match_ends()
+        at 30.minutes: sudden_thunderstorm()
+        at 45.minutes: vip_convoy(route: main_road)
+    }
+    
+    // Let the chaos begin!
+    everyone >>> everyone  // Mass honking
+    lane_discipline.set(ZERO)
+    
+    output('Chaos level: ACHIEVED! 🔥')
+    output('Average speed: 3 kmph')
+    output('Honking decibels: 120 dB')
+    output('Drivers stressed: 100%')
+}`,
+            
+            monsoon: `weather Monsoon {
+    intensity: HEAVY
+    visibility: 0.2
+    road_condition: FLOODED
+}
+
+scenario 'Mumbai_Monsoon_Nightmare' {
+    weather: Monsoon
+    duration: 3.hours
+    
+    // Pre-monsoon setup
+    spawn(Taxis: 50, Buses: 30, Autos: 40)
+    
+    // Monsoon effects
+    reduce_speed(factor: 0.3)
+    create_waterlogging([
+        'Andheri_Subway',
+        'Kings_Circle', 
+        'Sion_Junction'
+    ])
+    
+    // Emergency responses
+    timeline {
+        at 30.minutes: train_services.cancel()
+        at 60.minutes: office_crowds.rush_to_roads()
+        at 120.minutes: boats.appear_on_roads()
+    }
+    
+    monitor {
+        vehicles_stuck_count
+        alternate_routes_used
+        public_transport_chaos
+    }
+    
+    output('Monsoon traffic successfully simulated!')
+    output('Recommendation: Work from home! ☔')
+}`,
+            
+            festival: `event Ganpati_Visarjan {
+    duration: 12.hours
+    procession_routes: ['Main_Road', 'Beach_Road']
+    crowd_size: 50000
+}
+
+scenario 'Festival_Traffic_Management' {
+    event: Ganpati_Visarjan
+    
+    // Traffic diversions
+    close_roads(['Main_Road', 'Beach_Road'])
+    activate_alternate_routes()
+    
+    // Emergency services
+    deploy_traffic_cops(count: 50)
+    ambulance_standby(locations: 10)
+    
+    // Crowd & vehicle interaction
+    timeline {
+        at 8.00.AM: procession.starts()
+        at 12.00.PM: lunch_break_chaos()
+        at 6.00.PM: office_crowd_meets_festival()
+        at 10.00.PM: peak_celebration()
+    }
+    
+    // Special behaviors
+    vehicles.show_patience(level: HIGH)
+    everyone.join_celebration(probability: 0.3)
+    
+    output('Festival traffic managed successfully! 🎉')
+    output('Community harmony: 100%')
+    output('Traffic cops: Heroes of the day!')
+}`
+        };
+        
+        let vehicleCount = 0;
+        let chaosLevel = 'Normal';
+        
+        function runCode() {
+            const code = document.getElementById('code-editor').value;
+            const output = document.getElementById('output');
+            
+            // Simple parser simulation
+            output.textContent = '🚀 Starting TrafficScript simulation...\n\n';
+            
+            setTimeout(() => {
+                output.textContent += '📊 Parsing code...\n';
+                vehicleCount = Math.floor(Math.random() * 200) + 50;
+                
+                if (code.includes('chaos_level: MAXIMUM') || code.includes('INSANE')) {
+                    chaosLevel = '🔥 MAXIMUM';
+                } else if (code.includes('Monsoon') || code.includes('festival')) {
+                    chaosLevel = '⚡ HIGH';
+                } else {
+                    chaosLevel = '📊 Normal';
+                }
+                
+                updateStatus();
+            }, 1000);
+            
+            setTimeout(() => {
+                output.textContent += '🚗 Spawning vehicles...\n';
+                output.textContent += `   └─ Created ${vehicleCount} vehicles\n`;
+            }, 2000);
+            
+            setTimeout(() => {
+                output.textContent += '🚦 Initializing traffic systems...\n';
+                if (code.includes('pothole')) {
+                    output.textContent += '   └─ 🕳️ Potholes created successfully\n';
+                }
+                if (code.includes('traffic_cop')) {
+                    output.textContent += '   └─ 👮 Traffic cops deployed\n';
+                }
+            }, 3000);
+            
+            setTimeout(() => {
+                output.textContent += '⚡ Running simulation...\n';
+                output.textContent += generateSimulationResults(code);
+                output.textContent += '\n✅ Simulation completed successfully!\n';
+            }, 4000);
+        }
+        
+        function generateSimulationResults(code) {
+            let results = '\n📈 SIMULATION RESULTS:\n';
+            results += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            
+            if (code.includes('chaos') || code.includes('INSANE')) {
+                results += '🔥 Average Speed: 2.3 kmph\n';
+                results += '📢 Honking Level: 125 dB (Ear damage zone)\n';
+                results += '😤 Driver Stress: 98%\n';
+                results += '🚫 Traffic Rules Followed: 12%\n';
+                results += '💡 Creative Solutions: 47 (Including rooftop parking)\n';
+            } else if (code.includes('Monsoon')) {
+                results += '🌧️ Weather Impact: SEVERE\n';
+                results += '🚗 Vehicles Stuck: 67%\n';
+                results += '⛵ Boats on Roads: 3\n';
+                results += '☂️ Umbrella Sellers: 200% profit\n';
+            } else if (code.includes('festival')) {
+                results += '🎉 Festival Mood: EXCELLENT\n';
+                results += '🚔 Traffic Cops Performance: HEROIC\n';
+                results += '🤝 Community Cooperation: 95%\n';
+                results += '📱 Social Media Posts: 10,000+\n';
+            } else {
+                results += '🚦 Traffic Flow: SMOOTH\n';
+                results += '⏰ Average Travel Time: 45 mins\n';
+                results += '😊 Driver Satisfaction: 78%\n';
+                results += '🎯 On-time Arrivals: 82%\n';
+            }
+            
+            results += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            
+            // Add some fun insights
+            const insights = [
+                '💡 Insight: Honking increases by 23% during rain',
+                '🔍 Observation: Autos can fit through 50cm gaps',
+                '📊 Fact: Traffic cops develop superhuman patience',
+                '⚡ Discovery: Signals are actually just suggestions',
+                '🎯 Learning: Chaos has its own beautiful rhythm'
+            ];
+            
+            results += insights[Math.floor(Math.random() * insights.length)] + '\n';
+            
+            return results;
+        }
+        
+        function loadExample(type) {
+            document.getElementById('code-editor').value = examples[type];
+        }
+        
+        function clearCode() {
+            document.getElementById('code-editor').value = '';
+            document.getElementById('output').textContent = 'Code editor cleared. Ready for new traffic chaos! 🚦';
+            vehicleCount = 0;
+            chaosLevel = 'Normal';
+            updateStatus();
+        }
+        
+        function shareCode() {
+            const code = document.getElementById('code-editor').value;
+            if (code) {
+                // In real implementation, this would generate a shareable link
+                alert('🔗 Shareable link generated!\n(In real deployment, this would create a URL to share your TrafficScript code)');
+            } else {
+                alert('❌ Please write some code first!');
+            }
+        }
+        
+        function updateStatus() {
+            document.getElementById('status').textContent = `Simulating traffic chaos 🚦`;
+            document.getElementById('vehicle-count').textContent = `Vehicles: ${vehicleCount}`;
+            document.getElementById('chaos-level').textContent = `Chaos: ${chaosLevel}`;
+        }
+        
+        // Initialize
+        updateStatus();
+    </script>
+</body>
+</html>
